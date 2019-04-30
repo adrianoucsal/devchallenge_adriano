@@ -18,6 +18,7 @@ import com.wexinc.interview.challenge1.models.PostSuccessResponse;
 import com.wexinc.interview.challenge1.models.ThreadOverview;
 import com.wexinc.interview.challenge1.repositories.ThreadRepo;
 import com.wexinc.interview.challenge1.services.AuthManager;
+import com.wexinc.interview.challenge1.util.AppConstant;
 import com.wexinc.interview.challenge1.util.AppUtils;
 import com.wexinc.interview.challenge1.util.Path;
 
@@ -63,7 +64,7 @@ public class ThreadsController {
 			return "";
 		}
 
-		final String authToken = req.headers("X-WEX-AuthToken");
+		final String authToken = req.headers(AppConstant.HEADER_AUTH);
 		final AuthorizationToken token = authManager.verifyAuthToken(authToken);
 		MsgThread thread;
 		if (message.getThreadId() == 0) {

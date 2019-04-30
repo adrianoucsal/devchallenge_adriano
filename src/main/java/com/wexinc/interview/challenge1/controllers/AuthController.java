@@ -9,10 +9,12 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.wexinc.interview.challenge1.models.AuthorizationToken;
+import com.wexinc.interview.challenge1.models.ChangePasswordRequest;
 import com.wexinc.interview.challenge1.models.LoginRequest;
 import com.wexinc.interview.challenge1.models.User;
 import com.wexinc.interview.challenge1.repositories.UserRepo;
 import com.wexinc.interview.challenge1.services.AuthManager;
+import com.wexinc.interview.challenge1.util.AppConstant;
 import com.wexinc.interview.challenge1.util.AppUtils;
 import com.wexinc.interview.challenge1.util.Path;
 
@@ -40,6 +42,8 @@ public class AuthController {
 		logger.info("Starting AuthController");
 
 		post(Path.Login, handleLogin, json());
+		post(Path.ChangePassword, changePassword, json());
+		
 	}
 
 	private Route handleLogin = (Request req, Response resp) -> {
@@ -60,4 +64,33 @@ public class AuthController {
 		return token.getAuthToken();
 	};
 
+	private Route changePassword = (Request req, Response resp) -> {
+		final ChangePasswordRequest changePasswordRequest = new Gson().fromJson(req.body(), ChangePasswordRequest.class);
+		
+		final String authToken = req.headers(AppConstant.HEADER_AUTH);
+		AuthorizationToken token = authManager.verifyAuthToken(authToken);
+		
+		// Validate Request
+		if(AppUtils.isNullOrEmpty(changePasswordRequest.getUserName()) 
+				|| AppUtils.isNullOrEmpty(changePasswordRequest.getPassword())
+				|| AppUtils.isNullOrEmpty(changePasswordRequest.getNewPassword())
+				|| AppUtils.isNullOrEmpty(authToken)
+				) {
+			resp.status(400);			
+			return "Uninformed or invalid attribute";			
+		}
+		
+		final User user = userRepo.getByName(changePasswordRequest.getUserName());
+		if(user == null) {
+			resp.status(403);
+			return "";			
+		}
+		
+		if(token.getUserId() != user.getId()) {
+			resp.status(403);
+			return "";				
+		}
+
+		return authManager.changePassword(user.getId(), authToken, changePasswordRequest.getPassword(), changePasswordRequest.getNewPassword());
+	};	
 }

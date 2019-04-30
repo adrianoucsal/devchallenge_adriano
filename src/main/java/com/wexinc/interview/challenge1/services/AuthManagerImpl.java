@@ -10,6 +10,7 @@ import com.wexinc.interview.challenge1.models.User;
 import com.wexinc.interview.challenge1.repositories.UserRepo;
 
 public class AuthManagerImpl implements AuthManager {
+	private static final String HASH_KEY = "salt";
 	private static final String tokenFormat = "%1$d:%2$s:%3$d";
 	private static final HashMap<String, AuthorizationToken> tokens = new HashMap<String, AuthorizationToken>();
 	private PasswordHasher hasher;
@@ -27,7 +28,7 @@ public class AuthManagerImpl implements AuthManager {
 		
 		if (user == null) throw new AuthorizationException();
 		
-		String verifyHash = hasher.hash(password, "salt");
+		String verifyHash = hasher.hash(password, HASH_KEY);
 		
 		if (!verifyHash.equals(user.getPassHash())) throw new AuthorizationException();
 		
@@ -62,10 +63,20 @@ public class AuthManagerImpl implements AuthManager {
 	}
 
 	@Override
-	public AuthorizationToken changePassword(int userId, String authToken, String newPassword)
+	public AuthorizationToken changePassword(int userId, String authToken, String password, String newPassword)
 			throws AuthorizationException {
-		// TODO Auto-generated method stub
-		return null;
+		User user = userRepo.loadUser(userId);
+		
+		String verifyHash = hasher.hash(password, HASH_KEY);
+		if (!verifyHash.equals(user.getPassHash())) throw new AuthorizationException();
+		
+		user.setPassHash(hasher.hash(newPassword, HASH_KEY));
+		userRepo.saveUser(user);
+		
+		tokens.remove(authToken);
+		AuthorizationToken token = generateToken(user);
+		tokens.put(token.getAuthToken(), token);
+		return token;
 	}
 
 	

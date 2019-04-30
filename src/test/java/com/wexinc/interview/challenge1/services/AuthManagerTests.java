@@ -10,6 +10,7 @@ import com.wexinc.interview.challenge1.AppModule;
 import com.wexinc.interview.challenge1.AuthorizationException;
 import com.wexinc.interview.challenge1.models.AccessLevel;
 import com.wexinc.interview.challenge1.models.AuthorizationToken;
+import com.wexinc.interview.challenge1.models.User;
 import com.wexinc.interview.challenge1.repositories.UserRepo;
 
 public class AuthManagerTests {
@@ -61,4 +62,14 @@ public class AuthManagerTests {
 		assertNotEquals("Token values are identical", token.getAuthToken(), newToken.getAuthToken());
 		assertNotNull("New token is invalid", mgr.verifyAuthToken(newToken.getAuthToken()));
 	}	
+	
+	@Test
+	public void canChangePassword() throws AuthorizationException {
+		String newPassword = hasher.hash(pwd, "salt");
+		AuthorizationToken token = mgr.login(userId, pwd);
+		
+		AuthorizationToken newToken = mgr.changePassword(userId, token.getAuthToken(), pwd, newPassword);
+		User user = userRepo.loadUser(userId);
+		assertEquals("The password didn't change", hasher.hash(newPassword,"salt"), user.getPassHash());
+	}
 }

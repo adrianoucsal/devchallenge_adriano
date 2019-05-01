@@ -50,8 +50,19 @@ public class ThreadsController {
 				json());
 
 		get(Path.OneThread, (req, resp) -> {
-			final int threadId = Integer.parseInt(req.params(":threadId"));
-			return threadRepo.get(threadId);
+			int threadId;
+			try {
+				threadId = Integer.parseInt(req.params(":threadId"));
+			} catch (Exception e) {
+				resp.status(400);
+				return "Not found response";
+			}
+			MsgThread msg = threadRepo.get(threadId);
+			if(msg == null) {
+				resp.status(404);
+				return "Not data found";
+			}
+			return msg;
 		}, json());
 
 		post(Path.ThreadList, handleMessagePost, json());

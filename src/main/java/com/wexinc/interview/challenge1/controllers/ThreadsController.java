@@ -73,6 +73,7 @@ public class ThreadsController {
 			thread = threadRepo.createMessage(message.getThreadId(), token.getUserId(), message.getText());
 		}
 
+		resp.header(AppConstant.HEADER_AUTH, authManager.rotateAuthToken(token).getAuthToken());
 		return new PostSuccessResponse(thread.getId());
 	};
 }

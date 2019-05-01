@@ -91,6 +91,8 @@ public class AuthController {
 			return "";				
 		}
 
-		return authManager.changePassword(user.getId(), authToken, changePasswordRequest.getPassword(), changePasswordRequest.getNewPassword());
+		AuthorizationToken newToken =  authManager.changePassword(user.getId(), authToken, changePasswordRequest.getPassword(), changePasswordRequest.getNewPassword());
+		resp.header(AppConstant.HEADER_AUTH, newToken.getAuthToken());
+		return newToken;
 	};	
 }
